@@ -1,0 +1,84 @@
+// ============================================================================
+// firestore.rules — Aturan keamanan Firestore untuk Pelacak Keuangan.
+//
+// Prinsip: setiap pengguna HANYA bisa membaca/menulis datanya sendiri.
+// Struktur: users/{uid}/transactions/{txId}
+//           users/{uid}/categories/{catId}
+//           users/{uid}/budgets/{categoryId}
+//           users/{uid}/history/{histId}        (append-only, lihat di bawah)
+//           users/{uid}/settings/profile
+// Foto kwitansi: Firebase Storage, path receipts/{uid}/{photoId}.jpg
+// (aturan Storage terpisah — lihat catatan di bawah).
+//
+// CARA PAKAI (Fase 2):
+//   1. Buat proyek di https://console.firebase.google.com (lihat docs/firebase-setup.md)
+//   2. Aktifkan Authentication (metode Email/Password) dan Firestore Database.
+//   3. Salin file ini ke tab "Rules" Firestore, lalu Publish.
+//   4. Uji dengan Firestore Rules Playground sebelum rilis.
+//
+// Catatan: aturan ini menolak SEMUA akses tanpa login (request.auth == null).
+// ============================================================================
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: uid pada path harus sama dengan uid pengguna yang login.
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // Validasi bentuk data transaksi.
+    function validTransaction() {
+      return request.resource.data.type in ['pemasukan', 'pengeluaran']
+        && request.resource.data.amount is number
+        && request.resource.data.amount > 0
+        && request.resource.data.date is string
+        && request.resource.data.categoryId is string
+        && (!('photoId' in request.resource.data) || request.resource.data.photoId is string);
+    }
+
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+
+      match /transactions/{txId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && validTransaction();
+        allow delete: if isOwner(userId);
+      }
+
+      match /categories/{catId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /budgets/{categoryId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /settings/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Riwayat pengeditan: append-only. Client boleh membaca dan menambah,
+      // tetapi TIDAK boleh mengubah atau menghapus baris riwayat.
+      match /history/{histId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update, delete: if false;
+      }
+    }
+
+    // CATATAN STORAGE (aturan terpisah, di tab Storage bukan Firestore):
+    //   match /receipts/{userId}/{photoId} {
+    //     allow read, write: if request.auth != null && request.auth.uid == userId;
+    //   }
+    // Foto disimpan sebagai JPEG terkompresi (maks ~4MB); Firestore hanya
+    // menyimpan photoId pada dokumen transaksi.
+
+    // Tolak akses ke path lain yang tidak dikenal.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

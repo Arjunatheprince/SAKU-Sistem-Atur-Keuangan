@@ -1,0 +1,14 @@
+{
+  "appId": "com.arjuna.pelacakkeuangan",
+  "appName": "SAKU",
+  "webDir": "web",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": false,
+    "url": "http://10.225.27.171:5173",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

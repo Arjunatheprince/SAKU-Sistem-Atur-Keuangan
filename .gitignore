@@ -1,0 +1,27 @@
+# Dependensi
+node_modules/
+package-lock.json
+
+# Build & platform Android (dibuat lokal via Capacitor / Android Studio)
+android/
+dist/
+build/
+
+# Firebase
+.firebase/
+.firebaserc
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# File config berisi secret — JANGAN commit; pakai .env.example sebagai template
+.env
+.env.local
+web/js/firebase-config.js
+
+# Sistem & editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
