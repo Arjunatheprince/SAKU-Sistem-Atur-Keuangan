@@ -1,5 +1,5 @@
-// ============================================================================
-// firestore.rules — Aturan keamanan Firestore untuk Pelacak Keuangan.
+﻿// ============================================================================
+// firestore.rules â€” Aturan keamanan Firestore untuk SAKU-Sistem Atur Keuangan.
 //
 // Prinsip: setiap pengguna HANYA bisa membaca/menulis datanya sendiri.
 // Struktur: users/{uid}/transactions/{txId}
@@ -8,7 +8,7 @@
 //           users/{uid}/history/{histId}        (append-only, lihat di bawah)
 //           users/{uid}/settings/profile
 // Foto kwitansi: Firebase Storage, path receipts/{uid}/{photoId}.jpg
-// (aturan Storage terpisah — lihat catatan di bawah).
+// (aturan Storage terpisah â€” lihat catatan di bawah).
 //
 // CARA PAKAI (Fase 2):
 //   1. Buat proyek di https://console.firebase.google.com (lihat docs/firebase-setup.md)
@@ -82,3 +82,4 @@ service cloud.firestore {
     }
   }
 }
+
